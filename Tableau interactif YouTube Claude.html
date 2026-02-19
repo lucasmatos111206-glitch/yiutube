@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>SP14</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0f;--panel:#141418;--b:rgba(255,255,255,0.07);
+  --o:#ff5f1f;--y:#ffcc00;--g:#4dffb4;--p:#8877ff;
+  --text:#e8e8e8;--dim:#444;--r:16px;
+}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;
+  font-family:'DM Sans',sans-serif;color:var(--text);cursor:grab;user-select:none}
+body.drag{cursor:grabbing}
+
+#tb{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;align-items:center;
+  background:rgba(14,14,18,.96);border:1px solid var(--b);
+  border-radius:40px;padding:7px 18px;z-index:200;backdrop-filter:blur(20px);
+  font-size:13px;color:var(--dim)}
+#tb strong{color:var(--o);font-family:'Bebas Neue';font-size:18px;letter-spacing:2px}
+#zi{min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+.btn{background:rgba(255,255,255,.04);border:1px solid var(--b);color:var(--text);
+  border-radius:8px;padding:4px 12px;font-size:12px;cursor:pointer;transition:all .15s}
+.btn:hover{background:rgba(255,95,31,.15);border-color:var(--o);color:var(--o)}
+
+#mm{position:fixed;bottom:22px;right:22px;width:200px;height:120px;
+  background:rgba(12,12,16,.95);border:1px solid var(--b);border-radius:8px;overflow:hidden;z-index:200}
+#mmvp{position:absolute;border:1.5px solid var(--o);border-radius:3px;pointer-events:none}
+
+#cw{position:fixed;inset:0;overflow:hidden}
+#cv{position:absolute;width:10000px;height:6000px;transform-origin:0 0}
+#cv::before{content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.08) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none}
+
+svg#lines{position:absolute;inset:0;width:10000px;height:6000px;
+  pointer-events:none;overflow:visible}
+
+/* ─ CARD BASE ─ */
+.card{position:absolute;border-radius:var(--r);padding:26px;border:1px solid var(--b);
+  transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-3px) scale(1.007)}
+
+/* step badge */
+.stp{width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:rgba(255,255,255,.35);margin-bottom:14px}
+
+/* ── CARD SKINS ── */
+
+/* 1 */
+.s1{left:200px;top:300px;width:380px;
+  background:linear-gradient(140deg,#180900,#2c1300);
+  border-color:rgba(255,95,31,.5);
+  box-shadow:0 0 70px rgba(255,95,31,.12),inset 0 1px 0 rgba(255,95,31,.18)}
+.s1 .fl{font-size:42px;position:absolute;top:18px;right:20px}
+.s1 h1{font-family:'Bebas Neue';font-size:46px;line-height:1.05;color:#fff;margin-bottom:12px}
+.s1 p{font-size:13px;color:rgba(255,255,255,.55);line-height:1.6}
+.s1 .sub{margin-top:10px;font-size:12px;color:rgba(255,95,31,.85);font-weight:600}
+
+/* 2 */
+.s2{left:760px;top:300px;width:340px;
+  background:var(--panel);border-color:rgba(255,255,255,.1)}
+.s2 h2{font-family:'Bebas Neue';font-size:30px;color:#fff;margin-bottom:14px}
+.di{display:flex;gap:10px;align-items:flex-start;padding:7px 0;
+  border-bottom:1px solid var(--b);font-size:13px;color:rgba(255,255,255,.6);line-height:1.4}
+.di:last-of-type{border-bottom:none}
+.ic{font-size:16px;flex-shrink:0;margin-top:1px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.chip{background:rgba(255,255,255,.04);border:1px solid var(--b);
+  border-radius:20px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.45)}
+
+/* 3 */
+.s3{left:1280px;top:300px;width:360px;
+  background:linear-gradient(135deg,#140f00,#201800);
+  border-color:rgba(255,204,0,.35);box-shadow:0 0 50px rgba(255,204,0,.07)}
+.s3 .myth{font-size:13px;color:rgba(255,255,255,.28);text-decoration:line-through;
+  margin-bottom:12px;line-height:1.5}
+.s3 .truth{font-family:'Bebas Neue';font-size:34px;color:var(--y);line-height:1.1;margin-bottom:14px}
+.loop{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.li{background:rgba(255,204,0,.07);border:1px solid rgba(255,204,0,.2);
+  border-radius:6px;padding:4px 9px;font-size:11px;color:var(--y)}
+.la{color:rgba(255,204,0,.4);font-size:13px}
+
+/* 4 */
+.s4{left:1830px;top:240px;width:480px;
+  background:linear-gradient(160deg,#0c0c1c,#11102b);
+  border-color:rgba(102,85,255,.5);
+  box-shadow:0 0 80px rgba(102,85,255,.12),inset 0 1px 0 rgba(102,85,255,.18)}
+.s4 h2{font-family:'Bebas Neue';font-size:54px;color:#fff;letter-spacing:3px;margin-bottom:18px}
+.s4 h2 span{color:var(--p)}
+.mets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.met{background:rgba(102,85,255,.07);border:1px solid rgba(102,85,255,.2);
+  border-radius:12px;padding:13px 8px;text-align:center}
+.met .mi{font-size:24px;margin-bottom:5px}
+.met .mt{font-size:9px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.met .mv{font-size:11px;color:rgba(255,255,255,.5);line-height:1.35}
+.rb{background:rgba(255,255,255,.025);border:1px solid var(--b);border-radius:10px;overflow:hidden}
+.rr{display:flex;align-items:center;gap:10px;font-size:12px;padding:9px 13px}
+.rr+.rr{border-top:1px solid var(--b)}
+.bg{border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;flex-shrink:0}
+.bgg{background:rgba(77,255,180,.12);color:var(--g)}
+.bgr{background:rgba(255,80,80,.12);color:#ff6060}
+.ol{margin-top:13px;padding:11px;background:rgba(255,95,31,.07);
+  border:1px solid rgba(255,95,31,.2);border-radius:9px;
+  font-size:12px;color:rgba(255,255,255,.65);line-height:1.5}
+.ol em{color:var(--o);font-style:normal;font-weight:700}
+
+/* 5 */
+.s5{left:2500px;top:300px;width:420px;
+  background:linear-gradient(135deg,#091509,#0e1e0d);
+  border-color:rgba(77,255,180,.35);box-shadow:0 0 55px rgba(77,255,180,.07)}
+.s5 h2{font-family:'Bebas Neue';font-size:36px;color:#fff;margin-bottom:16px}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:16px}
+.db{background:rgba(255,255,255,.03);border:1px solid var(--b);
+  border-radius:8px;padding:6px 2px;text-align:center;font-size:9px;color:var(--dim)}
+.db.act{background:rgba(77,255,180,.08);border-color:rgba(77,255,180,.3);color:var(--g)}
+.db.wlk{background:rgba(255,204,0,.06);border-color:rgba(255,204,0,.2);color:var(--y)}
+.db .di2{font-size:14px;margin-bottom:2px}
+.er{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--b);font-size:13px}
+.er:last-of-type{border-bottom:none}
+.ei{font-size:18px;width:28px;text-align:center}
+.et{color:rgba(255,255,255,.7)}
+.es{font-size:11px;color:var(--dim)}
+.s5 .ol2{margin-top:12px;padding:9px;background:rgba(77,255,180,.04);
+  border:1px solid rgba(77,255,180,.15);border-radius:8px;font-size:11px;color:rgba(77,255,180,.6)}
+
+/* 6 — second row, right to left */
+.s6{left:2480px;top:1060px;width:460px;
+  background:var(--panel);border-color:rgba(255,255,255,.1)}
+.s6 h2{font-family:'Bebas Neue';font-size:34px;color:#fff;margin-bottom:4px}
+.s6 .sub2{font-size:12px;color:var(--dim);margin-bottom:20px}
+.mb{margin-bottom:16px}
+.ml{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.mn{font-size:13px;font-weight:700}
+.mq{font-size:11px;color:rgba(255,255,255,.28)}
+.mt2{height:8px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden;margin-bottom:5px}
+.mf{height:100%;border-radius:10px}
+.mnote{font-size:11px;color:var(--dim);line-height:1.4}
+.pill-row{display:flex;flex-direction:column;gap:0;margin-top:12px}
+.pill{display:flex;gap:9px;padding:7px 0;border-top:1px solid var(--b);
+  align-items:flex-start;font-size:12px;color:rgba(255,255,255,.5);line-height:1.4}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* 7 */
+.s7{left:1820px;top:1080px;width:440px;
+  background:linear-gradient(135deg,#0c0c1c,#12102c);
+  border-color:rgba(102,85,255,.4);box-shadow:0 0 50px rgba(102,85,255,.08)}
+.s7 h2{font-family:'Bebas Neue';font-size:32px;color:#fff;margin-bottom:4px}
+.s7 .moon{font-size:36px;position:absolute;top:20px;right:20px}
+.s7 .sub3{font-size:12px;color:var(--dim);margin-bottom:16px}
+.opt{background:rgba(102,85,255,.06);border:1px solid rgba(102,85,255,.15);
+  border-radius:10px;padding:10px 13px;margin-bottom:8px;
+  display:flex;gap:11px;align-items:center}
+.ol2{font-family:'Bebas Neue';font-size:24px;color:var(--p);flex-shrink:0}
+.ot{font-size:12px;color:rgba(255,255,255,.6);line-height:1.4}
+.s7 .warn{margin-top:12px;padding:9px;background:rgba(255,80,80,.05);
+  border:1px solid rgba(255,80,80,.15);border-radius:8px;
+  font-size:11px;color:rgba(255,255,255,.4);line-height:1.5}
+
+/* 8 */
+.s8{left:1180px;top:1080px;width:420px;
+  background:linear-gradient(135deg,#160000,#200808);
+  border-color:rgba(255,80,80,.25);box-shadow:0 0 40px rgba(255,80,80,.06)}
+.s8 h2{font-family:'Bebas Neue';font-size:34px;color:#fff;margin-bottom:14px}
+.ar{padding:9px 0;border-bottom:1px solid rgba(255,80,80,.1)}
+.ar:last-child{border-bottom:none}
+.al{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.aico{font-size:16px}
+.ati{font-size:11px;font-weight:700;color:#ff7070;text-transform:uppercase;letter-spacing:.5px}
+.atx{font-size:12px;color:rgba(255,255,255,.5);line-height:1.5;padding-left:24px}
+
+/* 9 — third row, left to right */
+.s9{left:280px;top:1080px;width:660px;
+  background:linear-gradient(140deg,#180900,#2c1300);
+  border-color:rgba(255,95,31,.35);box-shadow:0 0 60px rgba(255,95,31,.09)}
+.s9 h2{font-family:'Bebas Neue';font-size:36px;color:#fff;margin-bottom:16px;line-height:1}
+.s9 .inner{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.s9 .tl{position:relative;padding-left:18px}
+.s9 .tll{position:absolute;left:5px;top:8px;bottom:8px;width:2px;
+  background:linear-gradient(to bottom,#ff4400,#ff9966);border-radius:2px}
+.s9 .ti{position:relative;padding:9px 0 9px 18px}
+.s9 .td{position:absolute;left:-16px;top:13px;width:10px;height:10px;
+  border-radius:50%;background:var(--o);border:2px solid #ff9966}
+.s9 .tday{font-family:'Bebas Neue';font-size:22px;color:#ff9966}
+.s9 .ttx{font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;margin-top:2px}
+.s9 .q{padding:13px;background:rgba(255,95,31,.06);
+  border:1px solid rgba(255,95,31,.18);border-radius:10px;
+  font-size:13px;color:rgba(255,255,255,.7);line-height:1.6;
+  display:flex;flex-direction:column;justify-content:center}
+.s9 .q em{color:var(--o);font-style:normal;font-weight:700}
+
+/* 10 */
+.s10{left:1140px;top:1760px;width:500px;
+  background:linear-gradient(160deg,#0e0c1e,#181438);
+  border-color:rgba(160,144,255,.4);
+  box-shadow:0 0 80px rgba(102,85,255,.12),inset 0 1px 0 rgba(160,144,255,.12)}
+.s10 h2{font-family:'Bebas Neue';font-size:42px;color:#fff;margin-bottom:18px;line-height:1}
+.tl{position:relative;padding-left:18px}
+.tll{position:absolute;left:5px;top:8px;bottom:8px;width:2px;
+  background:linear-gradient(to bottom,#5544ee,#c0b0ff);border-radius:2px}
+.ti{position:relative;padding:9px 0 9px 20px}
+.td{position:absolute;left:-16px;top:13px;width:10px;height:10px;
+  border-radius:50%;background:#6655ff;border:2px solid #a090ff}
+.tday{font-family:'Bebas Neue';font-size:21px;color:#a090ff}
+.ttx{font-size:12px;color:rgba(255,255,255,.55);line-height:1.5;margin-top:1px}
+.s10 .qf{margin-top:16px;padding:13px;background:rgba(160,144,255,.06);
+  border:1px solid rgba(160,144,255,.18);border-radius:10px;
+  font-size:13px;color:rgba(255,255,255,.7);line-height:1.6}
+.s10 .qf em{color:#b0a0ff;font-style:normal;font-weight:700}
+
+/* 11 */
+.s11{left:1820px;top:1760px;width:370px;
+  background:linear-gradient(140deg,#1c0900,#2e1400);
+  border-color:rgba(255,95,31,.5);
+  box-shadow:0 0 70px rgba(255,95,31,.15),inset 0 1px 0 rgba(255,95,31,.18)}
+.s11 h2{font-family:'Bebas Neue';font-size:36px;color:#fff;margin-bottom:14px}
+.cb{border:1px solid rgba(255,95,31,.2);border-radius:12px;padding:13px;
+  margin-bottom:10px;background:rgba(255,95,31,.04)}
+.ci{font-size:20px;margin-bottom:5px}
+.ct{font-weight:700;font-size:13px;color:var(--o);margin-bottom:4px}
+.cd{font-size:12px;color:rgba(255,255,255,.5);line-height:1.4}
+.ca{margin-top:7px;display:inline-block;background:var(--o);color:#fff;
+  font-size:12px;font-weight:700;padding:4px 12px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<div id="tb">
+  <strong>SP14</strong>
+  <span style="color:rgba(255,255,255,.1);margin:0 6px">|</span>
+  <button class="btn" id="bi">＋</button>
+  <div id="zi">—</div>
+  <button class="btn" id="bo">－</button>
+  <button class="btn" id="br">⌂ Vue d'ensemble</button>
+</div>
+
+<div id="cw"><div id="cv">
+
+<!--
+  LAYOUT EN SERPENTIN :
+
+  ROW 1 (gauche → droite) :
+  ①Hook → ②Diagnostic → ③Croyance → ④SP14 → ⑤Sport
+
+  VIRAGE bas-droite → bas-gauche
+
+  ROW 2 (droite → gauche) :
+  ⑥Macros → ⑦Frein soir → ⑧Ajustements → ⑨Projection
+
+  VIRAGE bas-gauche → bas-droite
+
+  ROW 3 :
+  ⑩Timeline → ⑪CTA
+-->
+
+<svg id="lines">
+<defs>
+  <marker id="ao" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+    <path d="M0,0 L10,5 L0,10 Z" fill="rgba(255,255,255,0.5)"/></marker>
+</defs>
+
+<!-- Tous les traits sont blancs semi-transparents, simples et propres -->
+
+<!-- ① → ② -->
+<line x1="582" y1="500" x2="752" y2="500"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ② → ③ -->
+<line x1="1102" y1="500" x2="1272" y2="500"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ③ → ④ -->
+<line x1="1642" y1="500" x2="1822" y2="500"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ④ → ⑤ -->
+<line x1="2312" y1="500" x2="2492" y2="500"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- VIRAGE : ⑤ bas-droite → ⑥ haut-droite (courbe douce) -->
+<path d="M 2920 700 C 2920 900 2940 950 2940 1060"
+  stroke="rgba(255,255,255,.3)" stroke-width="2.5" fill="none" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ⑥ → ⑦ (droite vers gauche) -->
+<line x1="2478" y1="1280" x2="2262" y2="1280"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ⑦ → ⑧ -->
+<line x1="1818" y1="1280" x2="1602" y2="1280"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ⑧ → ⑨ -->
+<line x1="1178" y1="1280" x2="942" y2="1280"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- VIRAGE : ⑨ bas-gauche → ⑩ haut (courbe douce) -->
+<path d="M 280 1380 C 280 1540 1060 1680 1140 1752"
+  stroke="rgba(255,255,255,.3)" stroke-width="2.5" fill="none" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+<!-- ⑩ → ⑪ -->
+<line x1="1642" y1="1950" x2="1812" y2="1950"
+  stroke="rgba(255,255,255,.35)" stroke-width="2.5" stroke-dasharray="8,5" marker-end="url(#ao)"/>
+
+</svg>
+
+<!-- ════ ① HOOK ════ -->
+<div class="card s1">
+  <div class="stp">1</div>
+  <div class="fl">🔥</div>
+  <h1>SI TU CRAQUES,<br>C'EST PAS UN<br>PROBLÈME<br>DE VOLONTÉ.</h1>
+  <p>Tu fais des efforts sans preuve que ça marche.</p>
+  <p class="sub">→ Il te manque un système de pilotage.</p>
+</div>
+
+<!-- ════ ② DIAGNOSTIC ════ -->
+<div class="card s2">
+  <div class="stp">2</div>
+  <h2>QUI TU ES</h2>
+  <div class="di"><span class="ic">💼</span><span>Tu bosses, t'es fatigué</span></div>
+  <div class="di"><span class="ic">🍽</span><span>Tu manges "correct" la semaine</span></div>
+  <div class="di"><span class="ic">🌙</span><span>Tu dérapes le soir / week-end</span></div>
+  <div class="chips">
+    <div class="chip">👕 À l'aise en t-shirt</div>
+    <div class="chip">📸 Fuir les photos → fini</div>
+    <div class="chip">💨 Retrouver du souffle</div>
+  </div>
+</div>
+
+<!-- ════ ③ CROYANCE ════ -->
+<div class="card s3">
+  <div class="stp">3</div>
+  <div class="myth">❌ "Je manque de motivation"</div>
+  <div class="truth">TU MANQUES<br>DE PILOTAGE</div>
+  <div class="loop">
+    <div class="li">Pas de résultats</div>
+    <span class="la">→</span>
+    <div class="li">Tu doutes</div>
+    <span class="la">→</span>
+    <div class="li">Tu craques</div>
+    <span class="la">→</span>
+    <div class="li" style="border-color:rgba(255,95,31,.3);color:var(--o);background:rgba(255,95,31,.08)">⟳</div>
+  </div>
+</div>
+
+<!-- ════ ④ SP14 SYSTÈME ════ -->
+<div class="card s4">
+  <div class="stp">4</div>
+  <h2>SP<span>14</span></h2>
+  <div class="mets">
+    <div class="met"><div class="mi">⚖️</div><div class="mt">Poids</div><div class="mv">4 pesées/semaine<br>mêmes conditions</div></div>
+    <div class="met"><div class="mi">📏</div><div class="mt">Ventre</div><div class="mv">Tour de ceinture<br>2×/semaine</div></div>
+    <div class="met"><div class="mi">💪</div><div class="mt">Forme</div><div class="mv">1 repère simple<br>souffle / reps</div></div>
+  </div>
+  <div class="rb">
+    <div class="rr"><span class="bg bgg">2/3 bougent</span><span style="font-size:12px;color:rgba(255,255,255,.7)">→ Tu continues 💪</span></div>
+    <div class="rr"><span class="bg bgr">0–1/3 bouge</span><span style="font-size:12px;color:rgba(255,255,255,.65)">→ Tu ajustes UNE variable</span></div>
+  </div>
+  <div class="ol">🔓 La variable qui fait tout exploser chez les mecs… c'est <em>le soir.</em></div>
+</div>
+
+<!-- ════ ⑤ ENTRAÎNEMENT ════ -->
+<div class="card s5">
+  <div class="stp">5</div>
+  <h2>2×/SEM FULL BODY</h2>
+  <div class="wk">
+    <div class="db act"><div class="di2">🏋️</div>Lun</div>
+    <div class="db wlk"><div class="di2">🚶</div>Mar</div>
+    <div class="db"><div class="di2">—</div>Mer</div>
+    <div class="db act"><div class="di2">🏋️</div>Jeu</div>
+    <div class="db wlk"><div class="di2">🚶</div>Ven</div>
+    <div class="db"><div class="di2">—</div>Sam</div>
+    <div class="db"><div class="di2">—</div>Dim</div>
+  </div>
+  <div class="er"><div class="ei">⬆️</div><div><div class="et">Poussée</div><div class="es">Pompes · Machine</div></div></div>
+  <div class="er"><div class="ei">⬇️</div><div><div class="et">Tirage</div><div class="es">Rowing · Tirage poulie</div></div></div>
+  <div class="er"><div class="ei">🦵</div><div><div class="et">Jambes</div><div class="es">Presse · Squat assisté</div></div></div>
+  <div class="er"><div class="ei">🧱</div><div><div class="et">Gainage</div><div class="es">5 minutes</div></div></div>
+  <div class="ol2">🔓 "Si tu veux aller plus vite → le raccourci est à la fin."</div>
+</div>
+
+<!-- ════ ⑥ MACROS ════ -->
+<div class="card s6">
+  <div class="stp">6</div>
+  <h2>TES QUOTAS MACRO</h2>
+  <div class="sub2">3 chiffres. Oublie les régimes compliqués.</div>
+  <div class="mb">
+    <div class="ml"><span class="mn" style="color:var(--g)">🥩 Protéines</span><span class="mq">2 g × kg / jour</span></div>
+    <div class="mt2"><div class="mf" style="width:68%;background:linear-gradient(to right,#4dffb4,#1eccaa)"></div></div>
+    <div class="mnote">Viande · Poisson · Œufs · Fromage blanc — chaque repas, priorité absolue.</div>
+  </div>
+  <div class="mb">
+    <div class="ml"><span class="mn" style="color:var(--y)">🌾 Glucides</span><span class="mq">≤ 1 portion / repas · Zéro le soir</span></div>
+    <div class="mt2"><div class="mf" style="width:32%;background:linear-gradient(to right,#ffcc00,#e0a800)"></div></div>
+    <div class="mnote">Riz · Patate douce · Flocons. Levier n°1 à couper si le poids bloque.</div>
+  </div>
+  <div class="mb">
+    <div class="ml"><span class="mn" style="color:#7aabff">🥑 Lipides</span><span class="mq">1 g × kg / jour</span></div>
+    <div class="mt2"><div class="mf" style="width:22%;background:linear-gradient(to right,#4488ff,#2255dd)"></div></div>
+    <div class="mnote">Huile d'olive · Avocats · Œufs. Ne jamais supprimer — indispensables aux hormones.</div>
+  </div>
+  <div class="pill-row">
+    <div class="pill"><div class="dot" style="background:var(--g)"></div><span>Protéines non-négociables → préservent le muscle.</span></div>
+    <div class="pill"><div class="dot" style="background:var(--y)"></div><span>Glucides = levier n°1 si la balance ne bouge pas.</span></div>
+    <div class="pill"><div class="dot" style="background:#4488ff"></div><span>Lipides stables → supprimer les graisses écrase la testostérone.</span></div>
+  </div>
+</div>
+
+<!-- ════ ⑦ FREIN DU SOIR ════ -->
+<div class="card s7">
+  <div class="stp">7</div>
+  <div class="moon">🌙</div>
+  <h2>LE FREIN<br>DU SOIR</h2>
+  <div class="sub3">La variable clé. Une option chaque soir.</div>
+  <div class="opt"><div class="ol2">A</div><div class="ot">Yaourt / fromage blanc + fruit</div></div>
+  <div class="opt"><div class="ol2">B</div><div class="ot">Omelette + légumes</div></div>
+  <div class="opt"><div class="ol2">C</div><div class="ot">Soupe + protéines</div></div>
+  <div class="warn">⚠️ Resto / week-end : 1 repas libre = OK — mais pas repas libre + alcool + dessert + grignotage.</div>
+</div>
+
+<!-- ════ ⑧ AJUSTEMENTS ════ -->
+<div class="card s8">
+  <div class="stp">8</div>
+  <h2>ÇA BLOQUE ?<br>AJUSTE 1 TRUC</h2>
+  <div class="ar">
+    <div class="al"><span class="aico">⚖️</span><span class="ati">Poids bloqué</span></div>
+    <div class="atx">Retire 1 liquide calorique (alcool / jus / soda) OU réduis les glucides le soir.</div>
+  </div>
+  <div class="ar">
+    <div class="al"><span class="aico">📏</span><span class="ati">Ventre bloqué</span></div>
+    <div class="atx">Check grignotage + portions — souvent le soir.</div>
+  </div>
+  <div class="ar">
+    <div class="al"><span class="aico">⚡</span><span class="ati">Énergie à plat</span></div>
+    <div class="atx">Monte les protéines + améliore le sommeil → sinon tu craqueras.</div>
+  </div>
+</div>
+
+<!-- ════ ⑨ PROJECTION ════ -->
+<div class="card s9">
+  <div class="stp">9</div>
+  <h2>ET DANS 30 JOURS ?</h2>
+  <div class="inner">
+    <div class="tl">
+      <div class="tll"></div>
+      <div class="ti"><div class="td"></div><div class="tday">J+7</div><div class="ttx">Les premiers signaux. Le ventre commence à bouger.</div></div>
+      <div class="ti"><div class="td" style="background:#ff7744;border-color:#ffaa88"></div><div class="tday">J+14</div><div class="ttx">Bilan SP14 — 2/3 preuves. Tu ajustes ou tu continues.</div></div>
+      <div class="ti"><div class="td" style="background:#ff9966;border-color:#ffcc99"></div><div class="tday">J+30</div><div class="ttx">Plus léger, tu respires mieux, tu remets des fringues sans te cacher.</div></div>
+    </div>
+    <div class="q">
+      "T'as pas besoin d'être un robot.<br><br>T'as besoin d'un <em>système.</em>"
+    </div>
+  </div>
+</div>
+
+<!-- ════ ⑩ BILAN & SUITE ════ -->
+<div class="card s10">
+  <div class="stp">10</div>
+  <h2>LE BILAN<br>SP14</h2>
+  <div class="tl">
+    <div class="tll"></div>
+    <div class="ti"><div class="td"></div><div class="tday">Mesure ton poids</div><div class="ttx">4 pesées → tendance sur 14 jours</div></div>
+    <div class="ti"><div class="td" style="background:#8877ee"></div><div class="tday">Mesure ton ventre</div><div class="ttx">Tour de ceinture → est-ce que ça baisse ?</div></div>
+    <div class="ti"><div class="td" style="background:#a090ff;border-color:#c0b0ff"></div><div class="tday">Évalue ta forme</div><div class="ttx">Souffle ou reps → est-ce que tu progresses ?</div></div>
+  </div>
+  <div class="qf">"2/3 preuves → tu continues.<br>Sinon → tu ajustes <em>une seule variable.</em>"</div>
+</div>
+
+<!-- ════ ⑪ CTA ════ -->
+<div class="card s11">
+  <div class="stp">11</div>
+  <h2>PASSE À<br>L'ACTION</h2>
+  <div class="cb">
+    <div class="ci">💬</div>
+    <div class="ct">Commente SP14</div>
+    <div class="cd">Je t'envoie la checklist 14 jours — poids · ventre · plan repas.</div>
+    <div class="ca">→ SP14</div>
+  </div>
+  <div class="cb">
+    <div class="ci">🔗</div>
+    <div class="ct">Diagnostic personnalisé</div>
+    <div class="cd">Adapté à ton rythme + ton taf — lien en description.</div>
+    <div class="ca">→ Description</div>
+  </div>
+</div>
+
+</div></div>
+<div id="mm"></div>
+
+<script>
+const cw=document.getElementById('cw'),cv=document.getElementById('cv');
+const mm=document.getElementById('mm'),zi=document.getElementById('zi');
+const CW=10000,CH=6000,MW=200,MH=120;
+let sc=0.15,tx=-120,ty=-160,drag=false,lx,ly;
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function apply(){
+  cv.style.transform=`translate(${tx}px,${ty}px) scale(${sc})`;
+  zi.textContent=Math.round(sc*100)+'%';
+  let vp=document.getElementById('mmvp');
+  if(!vp){vp=document.createElement('div');vp.id='mmvp';mm.appendChild(vp);}
+  const sx=MW/CW,sy=MH/CH,vx=-tx/sc,vy=-ty/sc,vw=cw.clientWidth/sc,vh=cw.clientHeight/sc;
+  vp.style.cssText=`position:absolute;border:1.5px solid var(--o);border-radius:3px;pointer-events:none;
+    left:${cl(vx*sx,0,MW-6)}px;top:${cl(vy*sy,0,MH-6)}px;
+    width:${cl(vw*sx,4,MW)}px;height:${cl(vh*sy,4,MH)}px;`;
+}
+
+setTimeout(()=>{
+  const sx=MW/CW,sy=MH/CH;
+  document.querySelectorAll('.card').forEach(c=>{
+    const l=parseInt(c.style.left),t=parseInt(c.style.top);
+    const d=document.createElement('div');
+    d.style.cssText=`position:absolute;background:rgba(255,255,255,.11);border-radius:2px;
+      left:${l*sx}px;top:${t*sy}px;width:${Math.max(5,c.offsetWidth*sx)}px;height:${Math.max(4,c.offsetHeight*sy)}px;`;
+    mm.appendChild(d);
+  });
+},200);
+
+cw.addEventListener('mousedown',e=>{if(e.target.closest('.card'))return;drag=true;lx=e.clientX;ly=e.clientY;document.body.classList.add('drag');});
+document.addEventListener('mousemove',e=>{if(!drag)return;tx+=e.clientX-lx;ty+=e.clientY-ly;lx=e.clientX;ly=e.clientY;apply();});
+document.addEventListener('mouseup',()=>{drag=false;document.body.classList.remove('drag');});
+cw.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const f=e.deltaY<0?1.09:.92,ns=cl(sc*f,.05,2);
+  const r=cw.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  tx=mx-(mx-tx)*(ns/sc);ty=my-(my-ty)*(ns/sc);sc=ns;apply();
+},{passive:false});
+let ts=null;
+cw.addEventListener('touchstart',e=>{if(e.touches.length===1)ts={x:e.touches[0].clientX,y:e.touches[0].clientY,tx,ty};});
+cw.addEventListener('touchmove',e=>{if(e.touches.length===1&&ts){e.preventDefault();tx=ts.tx+e.touches[0].clientX-ts.x;ty=ts.ty+e.touches[0].clientY-ts.y;apply();}},{passive:false});
+document.getElementById('bi').onclick=()=>{sc=cl(sc*1.2,.05,2);apply();};
+document.getElementById('bo').onclick=()=>{sc=cl(sc*.83,.05,2);apply();};
+document.getElementById('br').onclick=()=>{sc=0.15;tx=-120;ty=-160;apply();};
+apply();
+</script>
+</body>
+</html>
